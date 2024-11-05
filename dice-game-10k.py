@@ -5,7 +5,6 @@ import random
 from collections import Counter
 
 # Default Properties
-i_player_count = 2
 
 # Function "Throw" 
 # Parameters "number_of_dices"
