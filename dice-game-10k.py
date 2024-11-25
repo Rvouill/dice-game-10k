@@ -4,6 +4,8 @@
 import random
 from collections import Counter
 
+# Includes
+
 # Default Properties
 
 # Function "Throw" 
@@ -58,6 +60,52 @@ def get_results(throw_set):
         return " | ".join(messages)
     else:
         return "No special combination"
+
+# Main Process #
+################
+
+# Get players number from user ?
+num_players = int(input("Enter the number of players: "))
+
+# Create a collection to store scores, initialized to 0 for all players
+players = [{"name": f"Player{i+1}", "scores": [], "total_score": 0} for i in range(num_players)]
+
+# Display the initial scores
+print("\nInitial Scores:")
+for player in players:
+    print(f"{player['name']} : {player['total_score']}")
+
+
+# Loop For Rounds Till One Player Get 10K
+while True:
+    for player in players:
+        points = int(input(f"Enter points scored by {player['name']} in this round: "))
+        
+        # Add the points to the player's scores list
+        player["scores"].append(points)
+        
+        # Update the total score
+        player["total_score"] += points
+
+        # Display current player infos
+        print(f"\n{player['name']} - Round score : {points} Points - Total score : {player["total_score"]} Points")
+        
+        # Check if the player's total score exceeds 10,000
+        if player["total_score"] >= 10000:
+            print(f"\n{player['name']} has won the game with a total score of {player['total_score']}!")
+            break
+    else:
+        # Continue the game if no one has exceeded 10,000
+        continue
+    break  # Exit the outer loop if a player has won
+
+
+# Display final scores
+print("\nFinal Scores:")
+for player in players:
+    print(f"{player['name']}: {player['total_score']}")
+
+# Round N  
 
 # Execute a throw and get the result
 my_throw = throw(6)
