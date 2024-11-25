@@ -1,4 +1,4 @@
-# Game-10K
+# Dice 10K
 
 # Libraries
 import random
@@ -79,13 +79,40 @@ for player in players:
 # Loop For Rounds Till One Player Get 10K
 while True:
     for player in players:
-        points = int(input(f"Enter points scored by {player['name']} in this round: "))
-        
-        # Add the points to the player's scores list
-        player["scores"].append(points)
-        
-        # Update the total score
-        player["total_score"] += points
+
+        re_throw = True
+        dice_nbr = 6
+        while re_throw:
+            # Execute a throw and get the result
+            my_throw = throw(dice_nbr)
+            print(f'\nThrow: {my_throw}')
+            print(f'\nResult: {get_results(my_throw)}')
+
+            # Enter & store points scored in this round
+            while True:
+                try:
+                    points = int(input(f"\nEnter points scored by {player['name']} in this round: "))
+                    break
+                except ValueError:
+                    print("Invalid input. Please enter a valid number.")
+
+
+            # Add the points to the player's scores list
+            player["scores"].append(points)
+            
+            # Update the total score
+            player["total_score"] += points
+
+            # Check if the user wants to re-throw
+            while True:
+                re_throw_input = input(f"\nRe throw? (Y/N): ").strip().lower()
+                if re_throw_input in {"y", "n"}:
+                    re_throw = re_throw_input == "y"
+                    dice_nbr = int(input(f"\nEnter dice left for {player['name']} in this round: "))
+                    break
+                else:
+                    print("Invalid input. Please enter 'Y' or 'N'.")
+
 
         # Display current player infos
         print(f"\n{player['name']} - Round score : {points} Points - Total score : {player["total_score"]} Points")
@@ -104,10 +131,3 @@ while True:
 print("\nFinal Scores:")
 for player in players:
     print(f"{player['name']}: {player['total_score']}")
-
-# Round N  
-
-# Execute a throw and get the result
-my_throw = throw(6)
-print(f'Throw: {my_throw}')
-print(f'Result: {get_results(my_throw)}')
