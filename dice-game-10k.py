@@ -3,9 +3,46 @@
 
 # Includes
 import functions
+import random
+import tkinter as tk
+from tkinter import messagebox
 
 # Start #
 #########
+
+class Dice10K:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Dice Game 10K")
+        
+        # Create a frame for the dice display
+        self.dice_frame = tk.Frame(self.root)
+        self.dice_frame.pack(pady=20)
+        
+        # Create labels for displaying dice results (placeholders for dice images)
+        self.dice_labels = []
+        for i in range(2):  # Assuming two dice
+            label = tk.Label(self.dice_frame, text="?")
+            label.pack(side=tk.LEFT, padx=10)
+            self.dice_labels.append(label)
+        
+        # Roll button
+        self.roll_button = tk.Button(self.root, text="Roll Dice", command=self.roll_dice)
+        self.roll_button.pack(pady=20)
+
+    def roll_dice(self):
+        # Simulate rolling dice
+        results = [random.randint(1, 6) for _ in range(2)]
+        
+        # Update dice labels with results (or images in the future)
+        for label, result in zip(self.dice_labels, results):
+            label.config(text=str(result))
+
+# Main program
+if __name__ == "__main__":
+    root = tk.Tk()
+    game = Dice10K(root)
+    root.mainloop()
 
 # Get players number from user ?
 num_players = int(input("Enter the number of players: "))
