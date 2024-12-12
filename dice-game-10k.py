@@ -6,6 +6,7 @@ import functions
 import random
 import tkinter as tk
 from tkinter import messagebox
+from PIL import Image, ImageTk
 
 # Start #
 #########
@@ -17,26 +18,34 @@ class Dice10K:
         
         # Create a frame for the dice display
         self.dice_frame = tk.Frame(self.root)
-        self.dice_frame.pack(pady=20)
-        
+        self.dice_frame.pack(pady=40)
+        self.dice_frame.pack(padx=140)
+
+        # Load dice face images
+        self.dice_images = []
+        for i in range(1, 7):  # Assuming dice images are named dice1.png to dice6.png
+            image = Image.open(f"images/dice-{i}.gif")
+            resized_image = image.resize((60, 60))  # Resize for consistent display
+            self.dice_images.append(ImageTk.PhotoImage(resized_image))
+
         # Create labels for displaying dice results (placeholders for dice images)
         self.dice_labels = []
-        for i in range(2):  # Assuming two dice
-            label = tk.Label(self.dice_frame, text="?")
+        for i in range(6):  # Assuming six dice
+            label = tk.Label(self.dice_frame)
             label.pack(side=tk.LEFT, padx=10)
             self.dice_labels.append(label)
         
         # Roll button
         self.roll_button = tk.Button(self.root, text="Roll Dice", command=self.roll_dice)
-        self.roll_button.pack(pady=20)
+        self.roll_button.pack(pady=40)
 
     def roll_dice(self):
-        # Simulate rolling dice
-        results = [random.randint(1, 6) for _ in range(2)]
-        
+        # Simulate rolling dice from functions
+        results = functions.throw(6)
+
         # Update dice labels with results (or images in the future)
         for label, result in zip(self.dice_labels, results):
-            label.config(text=str(result))
+            label.config(image=self.dice_images[result - 1])
 
 # Main program
 if __name__ == "__main__":
