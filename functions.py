@@ -23,9 +23,16 @@ def get_results(throw_set):
     if len(throw_set) == 6 and set(throw_set) == {1, 2, 3, 4, 5, 6}:
         messages.append("Royal Suite: 2000 pts")
     
-    # Triple 1: 1000 pts
-    if throw_set.count(1) == 3:
-        messages.append("Triple One: 1000 pts")
+    # Triples of 1 : 1000 pts (each)
+    # + remaings of 1 : 100 pts (each)
+    count_of_1 = throw_set.count(1)
+    triples_of_1 = count_of_1 // 3  # Number of triples of 1
+    remaining_1s = count_of_1 % 3   # Leftover of 1
+
+    if triples_of_1 > 0:
+        messages.append(f"Triple 1s: {triples_of_1 * 1000} pts")
+    if remaining_1s > 0:
+        messages.append(f" Ones: {remaining_1s * 100} pts")
     
     # 3 Doubles: 500 pts
     doubles = [num for num in set(throw_set) if throw_set.count(num) == 2]
@@ -43,12 +50,6 @@ def get_results(throw_set):
         # Calculate the score based on the triple values
         value = sum(triple * 100 for triple in triples)
         messages.append(f"Triple : {value} pts (Values: {triples[0]} and {triples[1]})")
-    
-    # Find Iteration Of "1"
-    if throw_set.count(1) == 2:
-        messages.append("Double One: 200 pts")
-    if throw_set.count(1) == 1:
-        messages.append("Only One: 100 pts")
         
     # Find Iteration Of "5"
     if throw_set.count(5) > 0:
