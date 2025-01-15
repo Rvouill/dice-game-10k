@@ -1,6 +1,3 @@
-# Dice 10K #
-############
-
 # Includes
 import functions
 import random
@@ -10,10 +7,7 @@ import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
 
-# Start #
-#########
-
-class Dice10K:
+class DiceGame10K:
     def __init__(self, root):
 
         # Basic initialization of app window
@@ -180,10 +174,3 @@ class Dice10K:
         python = sys.executable  # Path to the current Python interpreter
         os.execl(python, python, *sys.argv)
         
-
-# Main program
-if __name__ == "__main__":
-    root = tk.Tk()
-    game = Dice10K(root)
-    root.mainloop()
-
