@@ -13,18 +13,17 @@ class DiceGame10K:
         # Basic initialization of app window
         self.root = root
         self.root.title("Dice Game 10K")
-        
-        # Create a frame for the dice display
-        self.dice_frame = tk.Frame(self.root)
-        self.dice_frame.pack(pady=40)
-        self.dice_frame.pack(padx=140)
-
         self.set_players()  
 
     def set_players(self):
 
-        # Input for number of player
-        self.input_frame = tk.Frame(self.root)
+        # Create a container frame for Players screen
+        self.screen_players = tk.Frame(self.root, width=300, height=100)  # Set width, height, and background
+        self.screen_players.pack(pady=10)  # Add padding
+        self.screen_players.pack_propagate(False)  # Prevent the frame from resizing to fit its contents
+
+        # Input for number of players
+        self.input_frame = tk.Frame(self.screen_players)
         self.input_frame.pack(pady=10)
         tk.Label(self.input_frame, text="Number of players:").pack(side=tk.LEFT, padx=5)
         self.num_players_entry = tk.Entry(self.input_frame, width=5)
@@ -32,7 +31,7 @@ class DiceGame10K:
         self.num_players_entry.insert(0, "2")  # Default to 2 players
 
         # Start button
-        self.start_button = tk.Button(self.root, text="Start Game", command=self.start_game)
+        self.start_button = tk.Button(self.screen_players, text="Start Game", command=self.start_game)
         self.start_button.pack(pady=10)
    
     def start_game(self):
@@ -49,12 +48,8 @@ class DiceGame10K:
             print(f"Score table initialized for {num_players} players: {self.score_table}")
 
             # Clear any existing game-related UI if necessary
-            if hasattr(self, 'dice_frame'):
-                self.dice_frame.destroy()  
-            if hasattr(self, 'input_frame'):
-                self.input_frame.destroy() 
-            if hasattr(self, 'start_button'):
-                self.start_button.destroy() 
+            if hasattr(self, 'screen_players'):
+                self.screen_players.destroy()  
             
             # Create a new frame for dice-related UI
             self.dice_frame = tk.Frame(self.root)
