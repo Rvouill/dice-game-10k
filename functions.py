@@ -9,6 +9,7 @@ from collections import Counter
 def throw(number_of_dices):
     # Generate a single array of random integers between 1 and 6
     throw_set = [random.randint(1, 6) for _ in range(number_of_dices)]
+    print(f"Throw Set : {throw_set}")
     return throw_set
 
 # Function    : Get Results
