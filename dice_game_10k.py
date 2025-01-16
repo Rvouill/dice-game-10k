@@ -15,6 +15,7 @@ class DiceGame10K:
         self.root.title("Dice Game 10K")
         self.set_players()  
 
+    # Screen_1 : Set Number Of Players
     def set_players(self):
 
         # Create a container frame for Players screen
@@ -30,10 +31,11 @@ class DiceGame10K:
         self.num_players_entry.pack(side=tk.LEFT, padx=5)
         self.num_players_entry.insert(0, "2")  # Default to 2 players
 
-        # Start button
+        # Start Game button
         self.start_button = tk.Button(self.screen_players, text="Start Game", command=self.start_game)
         self.start_button.pack(pady=10)
    
+    # Screen_2 : Intit Game Interface
     def start_game(self):
         try:
             # Retrieve and validate the number of players
@@ -47,26 +49,50 @@ class DiceGame10K:
             # Debug: Print score table initialization
             print(f"Score table initialized for {num_players} players: {self.score_table}")
 
-            # Clear any existing game-related UI if necessary
+            # Clear previous screen before rendering new frame
             if hasattr(self, 'screen_players'):
                 self.screen_players.destroy()  
-            
-            # Create a new frame for dice-related UI
-            self.dice_frame = tk.Frame(self.root)
-            self.dice_frame.pack(pady=20)
-
-            # Render Game Interface
-            self.display_game()
             
             # Start Game Notification Message
             tk.messagebox.showinfo("Game Start", f"The game has started with {num_players} players!")
 
+            # Render Game User Interface
+            self.display_game()
 
         except ValueError as e:
             # Handle invalid input for number of players
             tk.messagebox.showerror("Invalid Input", f"Invalid number of players: {e}")
 
+    # Render Game User Interface
     def display_game(self):
+
+        # Create a new frame for Game User Interface
+        self.screen_game = tk.Frame(self.root, width=500, height=800)
+        self.screen_game.place(x=0, y=0)  # Position the main game container
+        self.screen_game.pack(pady=10)    
+
+        # Create a sub-container (frame) to hold the Label, Entry, and Button
+        self.input_container = tk.Frame(self.screen_game, width=200, height=200)
+        self.input_container.pack_propagate(False)  # Prevent the container from resizing to its children
+        self.input_container.pack(pady=10)  # Add padding around the container
+
+        # Input for number of dice
+        tk.Label(self.input_container, text="Number of dice:").pack(pady=10)
+        self.num_dice_entry = tk.Entry(self.input_container, width=5)
+        self.num_dice_entry.pack(pady=10)
+        self.num_dice_entry.insert(0, "6")  # Default to 6 dice
+
+        # Roll button
+        self.roll_button = tk.Button(self.input_container, text="Roll Dice", command=self.roll_dice)
+        self.roll_button.pack(pady=10)
+
+        # Create a sub-container (frame) to hold the Label, Entry, and Button
+        self.dice_container = tk.Frame(self.screen_game,width=500,height=200)
+        self.dice_container.pack(pady=10)  # Add padding around the container
+        
+        # Sub-container for the dice images
+        self.dice_labels_container = tk.Frame(self.dice_container,width=500,height=200)
+        self.dice_labels_container.pack()  # Pack it first to ensure the dice go above the message
 
         # Load dice face images
         self.dice_images = []
@@ -78,33 +104,21 @@ class DiceGame10K:
         # Create labels for displaying dice results images
         self.dice_labels = []
         for i in range(6):  # Assuming six dice
-            label = tk.Label(self.dice_frame)
-            label.pack(side=tk.LEFT, padx=10)
+            label = tk.Label(self.dice_labels_container)
+            label.pack(side=tk.LEFT, pady=10)
             self.dice_labels.append(label)
 
         # Create label for displaying dice results message
-        self.message_result = tk.Label(self.root, text="", fg="yellow", font=("Helvetica", 12))
-        self.message_result.pack(pady=10)
+        self.message_result = tk.Label(self.dice_container, text="", fg="yellow", font=("Helvetica", 12))
+        self.message_result.pack(pady=40)    
 
-        # Input for number of dice
-        self.input_frame = tk.Frame(self.root)
-        self.input_frame.pack(pady=10)
-        tk.Label(self.input_frame, text="Number of dice:").pack(side=tk.LEFT, padx=5)
-        self.num_dice_entry = tk.Entry(self.input_frame, width=5)
-        self.num_dice_entry.pack(side=tk.LEFT, padx=5)
-        self.num_dice_entry.insert(0, "6")  # Default to 6 dice
-        
-        # Roll button
-        self.roll_button = tk.Button(self.root, text="Roll Dice", command=self.roll_dice)
-        self.roll_button.pack(pady=40)
-
-         # Score button
+        # Score button
         self.scores_button = tk.Button(self.root, text="Scores", command=self.display_scores)
-        self.scores_button.pack(padx=60)
+        self.scores_button.pack(pady=10)
 
         # End button
         self.end_button = tk.Button(self.root, text="End Game", command=self.end_game)
-        self.end_button.pack(pady=40)
+        self.end_button.pack(pady=10)
 
     def roll_dice(self):
         # Simulate rolling dice from functions
@@ -165,7 +179,7 @@ class DiceGame10K:
         for i, total in enumerate(player_totals, start=1):
             print(f"Player {i}: {total} points")
 
-        # Relaunch the program
+        # Relaunch the program = Go To # Screen_1
         python = sys.executable  # Path to the current Python interpreter
         os.execl(python, python, *sys.argv)
         
