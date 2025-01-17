@@ -7,7 +7,10 @@ import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
 
+# Dice Game Class
 class DiceGame10K:
+
+    # Init
     def __init__(self, root):
 
         # Basic initialization of app window
@@ -40,8 +43,8 @@ class DiceGame10K:
         try:
             # Retrieve and validate the number of players
             num_players = int(self.num_players_entry.get())
-            if num_players < 1:
-                raise ValueError("Number of players must be at least 1.")
+            if num_players < 2:
+                raise ValueError("Number of players must be at least 2.")
             
             # Initialize the score table: a list of empty lists, one for each player
             self.score_table = [[] for _ in range(num_players)]
@@ -68,7 +71,6 @@ class DiceGame10K:
 
         # Create a new frame for Game User Interface
         self.screen_game = tk.Frame(self.root, width=500, height=800)
-        self.screen_game.place(x=0, y=0)  # Position the main game container
         self.screen_game.pack(pady=10)    
 
         # Create a sub-container (frame) to hold the Label, Entry, and Button
