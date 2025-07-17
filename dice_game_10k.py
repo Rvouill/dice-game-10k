@@ -1,5 +1,6 @@
 # Includes
 import functions
+import config
 import random
 import os
 import sys
@@ -15,7 +16,8 @@ class DiceGame10K:
 
         # Basic initialization of app window
         self.root = root
-        self.root.title("Dice Game 10K")
+        self.root.title(config.APP_TITLE)
+        self.root.geometry(config.WINDOW_SIZE)
         self.set_players()  
 
     # Screen_1 : Set Number Of Players
