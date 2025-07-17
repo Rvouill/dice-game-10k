@@ -19,6 +19,9 @@ class DiceGame10K:
         self.root.title(config.APP_TITLE)
         self.root.geometry(config.WINDOW_SIZE)
         self.set_players()  
+        self.current_player = 0
+        self.round_score = 0
+        self.temp_scores = []
 
     # Screen_1 : Set Number Of Players
     def set_players(self):
@@ -48,6 +51,10 @@ class DiceGame10K:
             if num_players < 2:
                 raise ValueError("Number of players must be at least 2.")
             
+            # Store the number of players
+            self.num_players = num_players
+            print(f"[INFO] Number of players set to {num_players}")
+
             # Initialize the score table: a list of empty lists, one for each player
             self.score_table = [[] for _ in range(num_players)]
             
@@ -133,6 +140,39 @@ class DiceGame10K:
         for label, result in zip(self.dice_labels, results):
             label.config(image=self.dice_images[result - 1])
 
+        # Create a temporary scores frame for current player round
+        if hasattr(self, 'points_input_frame'):
+            self.points_input_frame.destroy()
+
+        self.points_input_frame = tk.Frame(self.dice_container)
+        self.points_input_frame.pack(pady=10)
+
+        # Champ de saisie
+        tk.Label(self.points_input_frame, text="Points à garder :").pack(side=tk.LEFT, padx=5)
+        self.points_entry = tk.Entry(self.points_input_frame, width=10)
+        self.points_entry.pack(side=tk.LEFT, padx=5)
+
+        # Bouton Ajouter
+        self.add_button = tk.Button(self.points_input_frame, text="Ajouter", command=self.add_points)
+        self.add_button.pack(side=tk.LEFT, padx=5)
+
+        # Bouton Valider
+        self.save_button = tk.Button(self.points_input_frame, text="Valider", command=self.validate_points)
+        self.save_button.pack(side=tk.LEFT, padx=5)
+
+        # Bouton Annuler
+        self.cancel_button = tk.Button(self.points_input_frame, text="Annuler", command=self.cancel_points)
+        self.cancel_button.pack(side=tk.LEFT, padx=5)
+
+         # Label pour afficher le score temporaire
+        if hasattr(self, 'round_score_label'):
+            self.round_score_label.destroy()
+
+        self.round_score_label = tk.Label(self.dice_container, text=f"Score temporaire : {self.round_score}", font=("Helvetica", 12, "bold"))
+        self.round_score_label.pack(pady=5)
+
+        print(f"[INFO] Joueur {self.current_player + 1} a lancé les dés : {results}")
+
     def display_scores(self):
          # Clear existing score display, if any
         if hasattr(self, 'score_frame'):
@@ -186,4 +226,65 @@ class DiceGame10K:
         # Relaunch the program = Go To # Screen_1
         python = sys.executable  # Path to the current Python interpreter
         os.execl(python, python, *sys.argv)
-        
+
+    def update_round_score_display(self):
+        if hasattr(self, 'round_score_label'):
+            self.round_score_label.config(text=f"Score temporaire : {self.round_score}")
+
+    def add_points(self):
+        try:
+            points = int(self.points_entry.get())
+            self.round_score += points
+            self.update_round_score_display()
+            print(f"[AJOUT] +{points} points ajoutés au score temporaire => Total : {self.round_score}")
+        except ValueError:
+            tk.messagebox.showerror("Erreur", "Veuillez saisir un nombre entier de points.")
+
+    def cancel_points(self):
+        print(f"[ANNULATION] Score temporaire remis à zéro (était : {self.round_score})")
+        self.round_score = 0
+        self.update_round_score_display()
+
+    def validate_points(self):
+        # Ajoute le score de la manche dans le tableau de scores définitif
+        self.score_table[self.current_player].append(self.round_score)
+
+        print(f"[VALIDATION] Joueur {self.current_player + 1} a validé {self.round_score} pts.")
+        print(f"[TABLE SCORE] => {self.score_table}")
+
+        # Réinitialise le score temporaire
+        self.round_score = 0
+        self.update_round_score_display()
+
+        # Supprime le champ de saisie
+        self.points_input_frame.destroy()   
+
+        # Passer au joueur suivant
+        self.current_player += 1
+
+        # Si tous les joueurs ont joué, recommencer depuis le premier
+        if self.current_player >= self.num_players:
+            self.current_player = 0
+            print("[MANCHE TERMINÉE] Nouvelle manche à venir.")
+
+        # Message de tour
+        tk.messagebox.showinfo("Tour Suivant", f"Au tour du joueur {self.current_player + 1} !")
+
+        # Réinitialiser le champ pour un nouveau lancé
+        self.clear_game_input()
+
+    def clear_game_input(self):
+        """Réinitialise les entrées pour un nouveau tour"""
+        self.num_dice_entry.delete(0, tk.END)
+        self.num_dice_entry.insert(0, "6")  # Valeur par défaut
+        self.message_result.config(text="")  # Nettoyer le message précédent
+
+        # Nettoyer les images des dés
+        for label in self.dice_labels:
+            label.config(image="")
+
+        # Nettoyer le champ de points s'il existe
+        if hasattr(self, 'points_input_frame'):
+            self.points_input_frame.destroy()
+
+        print(f"[TOUR] Préparation du tour pour le joueur {self.current_player + 1}")
