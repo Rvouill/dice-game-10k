@@ -132,13 +132,26 @@ class DiceGame10K:
         self.end_button.pack(pady=10)
 
     def roll_dice(self):
+
+        # Supprimer les anciens labels
+        for label in self.dice_labels:
+            label.destroy()
+        self.dice_labels = []
+
         # Simulate rolling dice from functions
         results = functions.throw(int(self.num_dice_entry.get()))
-        self.message_result.config(text=functions.get_results(results))
+        self.message_result.config(text=functions.get_results(results)) 
+
+        for result in results:
+            label = tk.Label(self.dice_labels_container, image=self.dice_images[result - 1])
+            label.pack(side=tk.LEFT, pady=10)
+            self.dice_labels.append(label)
 
         # Update dice labels with results as image
         for label, result in zip(self.dice_labels, results):
             label.config(image=self.dice_images[result - 1])
+
+       
 
         # Create a temporary scores frame for current player round
         if hasattr(self, 'points_input_frame'):
