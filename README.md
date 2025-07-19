@@ -1,7 +1,7 @@
 
 # 🎲 Dice Game 10k
 
-A dice game inspired by the classic "10 000" (also known as Farkle, Zonk, Greed…), written in Python. It supports two modes: interactive play and simulation for testing strategies.
+A dice game inspired by the classic "10 000", written in Python. 
 
 ## 📂 Project Structure
 
@@ -11,7 +11,6 @@ A dice game inspired by the classic "10 000" (also known as Farkle, Zonk, Greed�
 ├── dice_game_10k.py      # Core game logic
 ├── functions.py          # Utility functions (scoring, dice selection…)
 ├── main.py               # Main entry point (CLI interface)
-├── old.py                # Old version / prototype
 └── images/               # Illustrations, examples or assets
 ```
 
@@ -72,8 +71,7 @@ To contribute:
 
 ## 📝 Authors
 
-- **Rvouill** – main author  
-- **HerveMakewaves** – contributor ([github.com](https://github.com/Rvouill/dice-game-10k))
+- **Rvouill** – main author ([github.com](https://github.com/Rvouill/)) 
 
 ## 📄 License
 
@@ -86,8 +84,7 @@ To make it open-source, consider adding a `LICENSE` file (MIT, Apache, etc.).
 
 - Add `requirements.txt` if needed.
 - Specify an open-source license.
-- Clarify advanced rules (e.g., straight, pairs, etc.).
-- Add logging or debug mode.
+- Clarify rules (e.g., straight, pairs, etc.).
 
 ---
 
