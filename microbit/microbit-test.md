@@ -25,10 +25,11 @@ deactivate
 ```
 
 ### 📥 2. Install dependencies
+
 We need pyserial to read from the micro:bit and Pillow for GUI (used elsewhere in the project):
 
 ```bash
-pip install pyserial Pillow
+pip3 install pyserial Pillow
 # verify install
 python -c "import serial, PIL; print('pyserial and pillow are installed')"
 ```
@@ -77,7 +78,7 @@ with serial.Serial('/dev/tty.usbmodem111402', 115200, timeout=1) as ser:
 - Run the Python script:
 
   ```bash
-  python microbit-test.py
+  python3 microbit/microbit-test.py
   ```
 
 - Press Button A → You should see:
@@ -92,6 +93,7 @@ with serial.Serial('/dev/tty.usbmodem111402', 115200, timeout=1) as ser:
   ```
 
 ## 🛠️ Troubleshooting
+
 - Use ls /dev/tty.* to find your micro:bit port on macOS
 - On Windows, try COM3, COM4, etc.
 - Ensure the .hex file is correctly flashed and includes serial.write_line
