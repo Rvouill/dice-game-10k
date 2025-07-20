@@ -80,6 +80,16 @@ To make it open-source, consider adding a `LICENSE` file (MIT, Apache, etc.).
 
 ---
 
+### Others Infos/Projects
+
+- Application
+  - ([Dice 10000 (Original)](https://play.google.com/store/apps/details?id=com.SoftwareByMatt.DiceDeluxe&hl=fr_CA)) 
+  - ([Jeu de Dés : le jeu des 10000])(https://apps.apple.com/fr/app/jeu-de-d%C3%A9s-le-jeu-des-10000/id484002901)
+- Various Rules 
+ - ([Vuissoz Jean-Noël])(https://jnv.ch/index.php?cat=passions/jeux/de&page=10000&sm=1)
+
+---
+
 ### ✅ To Do
 
 - Add `requirements.txt` if needed.
