@@ -362,9 +362,9 @@ class DiceGameUI:
 
         # Valider le tour dans la logique du jeu
         self.game_logic.score_table[self.game_logic.current_player].append(total_selected_score)
-        self.game_logic.round_score = 0  # <-- Réinitialiser le score temporaire
+        self.game_logic.round_score = 0  # Réinitialiser le score temporaire
         self.game_logic.kept_dice = []
-        self.game_logic.remaining_dice = 6
+        self.game_logic.remaining_dice = 6  # <-- Réinitialiser à 6 dés
 
         # Passer au joueur suivant
         self.game_logic.current_player = (self.game_logic.current_player + 1) % self.game_logic.num_players
@@ -377,7 +377,7 @@ class DiceGameUI:
         self.clear_game_input()
 
         # Mettre à jour l'affichage du score temporaire
-        self.update_round_score_display()  # <-- Met à jour l'affichage
+        self.update_round_score_display()
 
         # Désactiver le bouton "Valider le tour"
         self.validate_turn_button.config(state=tk.DISABLED)
@@ -390,12 +390,18 @@ class DiceGameUI:
         print("[BUST] Aucune combinaison valide. Tour terminé.")
 
         # Réinitialiser le score temporaire
-        self.game_logic.round_score = 0  # <-- Réinitialiser le score temporaire
-        self.update_round_score_display()  # <-- Met à jour l'affichage
-
-        # Réinitialiser les dés conservés
+        self.game_logic.round_score = 0
         self.game_logic.kept_dice = []
-        self.game_logic.remaining_dice = 6
+        self.game_logic.remaining_dice = 6  # <-- Réinitialiser à 6 dés
+
+        # Vérifier que num_dice_entry existe
+        if hasattr(self, 'num_dice_entry') and self.num_dice_entry:
+            self.num_dice_entry.delete(0, tk.END)
+            self.num_dice_entry.insert(0, "6")  # Réinitialiser à 6
+        else:
+            print("[DEBUG] num_dice_entry n'existe pas ou a été détruit.")
+
+        self.update_round_score_display()
 
         # Supprimer les options de scoring
         if hasattr(self, 'scoring_options_frame'):
@@ -442,13 +448,18 @@ class DiceGameUI:
 
     def clear_game_input(self):
         """Réinitialise les entrées pour un nouveau tour."""
-        self.num_dice_entry.delete(0, tk.END)
-        self.num_dice_entry.insert(0, "6")
+        # Vérifier que num_dice_entry existe
+        if hasattr(self, 'num_dice_entry') and self.num_dice_entry:
+            self.num_dice_entry.delete(0, tk.END)
+            self.num_dice_entry.insert(0, "6")  # Réinitialiser à 6
+        else:
+            print("[DEBUG] num_dice_entry n'existe pas ou a été détruit.")
+
         self.message_result.config(text="")
 
-        # Réinitialiser les sélections
-        self.selected_combinations = []
-        self.disabled_options = set()
+        # Réinitialiser les dés conservés et restants
+        self.game_logic.kept_dice = []
+        self.game_logic.remaining_dice = 6  # <-- Réinitialiser à 6 dés
 
         # Nettoyer les images des dés
         for label in self.dice_labels:
@@ -458,8 +469,13 @@ class DiceGameUI:
         if hasattr(self, 'scoring_options_frame'):
             self.scoring_options_frame.destroy()
 
-        # Désactiver le bouton "Valider le tour"
+        # Réinitialiser les sélections
+        self.selected_combinations = []
+        self.disabled_options = set()
+
+        # Désactiver les boutons
         self.validate_turn_button.config(state=tk.DISABLED)
+        self.roll_button.config(state=tk.NORMAL)  # Réactiver le bouton "Roll Dice" pour le prochain joueur
 
     def display_scores(self):
         """Affiche le tableau des scores des joueurs."""
