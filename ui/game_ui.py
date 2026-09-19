@@ -31,6 +31,10 @@ class DiceGameUI:
         self.root.geometry(config.WINDOW_SIZE)
         self.set_players()
 
+        # Initialize game state variables
+        self.selected_combinations = []  # Liste des combinaisons sélectionnées
+        self.disabled_options = set()    # Ensemble des options désactivées 
+
     def set_players(self):
         """Affiche l'écran de configuration du nombre de joueurs."""
         # Create a container frame for Players screen
@@ -151,7 +155,7 @@ class DiceGameUI:
             self.screen_game,
             text="Valider le tour",
             command=self.validate_turn,
-            state=tk.DISABLED
+            state=tk.DISABLED  # Désactivé au début (activé après une sélection)
         )
         self.validate_turn_button.pack(pady=10)
 
@@ -175,15 +179,24 @@ class DiceGameUI:
         """Lance les dés et affiche les résultats."""
         print("[DEBUG] roll_dice appelé")
 
+        # Désactiver les boutons pendant le traitement
+        self.roll_button.config(state=tk.DISABLED)
+        self.validate_turn_button.config(state=tk.DISABLED)
+
+        # Réinitialiser les sélections
+        self.selected_combinations = []
+        self.disabled_options = set()
+
         # Supprimer les anciens labels de dés
         for label in self.dice_labels:
             label.destroy()
         self.dice_labels = []
 
         # Lancer les dés
-        num_dice = int(self.num_dice_entry.get())
+        num_dice = self.game_logic.remaining_dice
         results = self.game_logic.roll_dice(num_dice)
         print(f"[DEBUG] Résultats du lancer : {results}")
+        self.last_roll_results = results  # Stocker les résultats pour highlight_selected_dice
 
         # Afficher les dés
         for result in results:
@@ -204,27 +217,101 @@ class DiceGameUI:
         self.display_scoring_options()
         self.message_result.config(text="Choisissez une combinaison")
 
-        # Activer le bouton "Valider le tour" si des points ont été accumulés
-        if self.game_logic.round_score > 0:
-            self.validate_turn_button.config(state=tk.NORMAL)
+        # Réactiver le bouton "Roll Dice" (mais pas "Valider le tour" tant qu'aucune combinaison n'est sélectionnée)
+        self.roll_button.config(state=tk.NORMAL)
 
     def display_scoring_options(self):
-        """Affiche les options de scoring comme des boutons."""
+        """Affiche les options de scoring comme des boutons, en désactivant les incompatibles."""
         if hasattr(self, 'scoring_options_frame'):
             self.scoring_options_frame.destroy()
 
         self.scoring_options_frame = tk.Frame(self.dice_container)
         self.scoring_options_frame.pack(pady=10)
 
+        # Dés déjà sélectionnés (tous les dés des combinaisons sélectionnées)
+        selected_dice = []
+        for combo in self.selected_combinations:
+            selected_dice.extend(combo["dice"])
+
         for option in self.current_scoring_options:
+            # Vérifier si cette option utilise des dés déjà sélectionnés
+            conflict = any(die in selected_dice for die in option["dice"])
+
+            # Désactiver l'option si elle est en conflit
+            state = tk.DISABLED if conflict or option in self.selected_combinations else tk.NORMAL
+
+            # Créer le bouton
             btn = tk.Button(
                 self.scoring_options_frame,
                 text=f"{option['name']} (+{option['score']} pts)",
-                command=lambda opt=option: self.select_scoring_option(opt),
+                command=lambda opt=option: self.toggle_combination(opt),
                 width=30,
-                anchor="w"
+                anchor="w",
+                state=state,
+                bg="lightgreen" if option in self.selected_combinations else "SystemButtonFace"
             )
             btn.pack(pady=5, padx=10, fill="x")
+
+    def toggle_combination(self, option: Dict[str, Any]):
+        """
+        Sélectionne ou désélectionne une combinaison.
+        Met à jour le nombre de dés restants.
+        """
+        # Vérifier si la combinaison est déjà sélectionnée
+        if option in self.selected_combinations:
+            # Désélectionner la combinaison
+            self.selected_combinations.remove(option)
+            self.game_logic.round_score -= option["score"]
+        else:
+            # Sélectionner la combinaison
+            self.selected_combinations.append(option)
+            self.game_logic.round_score += option["score"]
+
+        self.update_round_score_display()
+
+        # Recalculer les dés restants
+        all_dice = self.last_roll_results.copy()
+        selected_dice = []
+        for combo in self.selected_combinations:
+            selected_dice.extend(combo["dice"])
+
+        remaining_dice = [d for d in all_dice if d not in selected_dice]
+        self.game_logic.remaining_dice = len(remaining_dice)
+
+        # Mettre à jour le champ "Number of dice"
+        self.num_dice_entry.delete(0, tk.END)
+        self.num_dice_entry.insert(0, str(self.game_logic.remaining_dice))
+
+        # Mettre à jour l'affichage des options
+        self.display_scoring_options()
+
+        # Mettre à jour l'affichage des dés
+        self.highlight_selected_dice()
+
+        # Activer les boutons "Valider le tour" et "Roll Dice" si au moins une combinaison est sélectionnée
+        if self.selected_combinations:
+            self.validate_turn_button.config(state=tk.NORMAL)
+            self.roll_button.config(state=tk.NORMAL)
+        else:
+            self.validate_turn_button.config(state=tk.DISABLED)
+            self.roll_button.config(state=tk.DISABLED)
+
+    def highlight_selected_dice(self):
+        """Met en évidence les dés des combinaisons sélectionnées."""
+        # Réinitialiser tous les dés
+        for label in self.dice_labels:
+            label.config(bg="SystemButtonFace", bd=0)
+
+        # Dés sélectionnés (tous les dés des combinaisons sélectionnées)
+        selected_dice = []
+        for combo in self.selected_combinations:
+            selected_dice.extend(combo["dice"])
+
+        # Mettre en vert les dés sélectionnés
+        for label, die_value in zip(self.dice_labels, self.last_roll_results):
+            if die_value in selected_dice:
+                label.config(bg="lightgreen", bd=2, relief=tk.SOLID)
+                selected_dice.remove(die_value)  # Éviter les doublons
 
     def select_scoring_option(self, option: Dict[str, Any]):
         """Gère la sélection d'une combinaison de score."""
@@ -255,51 +342,74 @@ class DiceGameUI:
         # Activer le bouton "Valider le tour"
         self.validate_turn_button.config(state=tk.NORMAL)
 
+    def update_round_score_display(self):
+        """Met à jour l'affichage du score temporaire."""
+        if hasattr(self, 'round_score_label'):
+            self.round_score_label.config(
+                text=f"Score temporaire : {self.game_logic.round_score}"
+            )
+
     def validate_turn(self):
-        """Valide le tour du joueur et passe au suivant."""
-        print(f"[VALIDATION] Joueur {self.game_logic.current_player + 1} valide son tour avec {self.game_logic.round_score} pts.")
+        """Valide le tour du joueur avec les combinaisons sélectionnées."""
+        if not self.selected_combinations:
+            tk.messagebox.showwarning("Aucune sélection", "Veuillez sélectionner au moins une combinaison.")
+            return
 
         # Ajouter le score à l'historique
         player_name = f"Joueur {self.game_logic.current_player + 1}"
-        self.game_logic.turn_history.append(f"{player_name}: +{self.game_logic.round_score} pts")
+        total_selected_score = sum(opt["score"] for opt in self.selected_combinations)
+        self.game_logic.turn_history.append(f"{player_name}: +{total_selected_score} pts")
 
         # Valider le tour dans la logique du jeu
-        self.game_logic.validate_turn()
+        self.game_logic.score_table[self.game_logic.current_player].append(total_selected_score)
+        self.game_logic.round_score = 0  # <-- Réinitialiser le score temporaire
+        self.game_logic.kept_dice = []
+        self.game_logic.remaining_dice = 6
+
+        # Passer au joueur suivant
+        self.game_logic.current_player = (self.game_logic.current_player + 1) % self.game_logic.num_players
+
+        # Réinitialiser les sélections
+        self.selected_combinations = []
+        self.disabled_options = set()
 
         # Réinitialiser l'interface
         self.clear_game_input()
+
+        # Mettre à jour l'affichage du score temporaire
+        self.update_round_score_display()  # <-- Met à jour l'affichage
 
         # Désactiver le bouton "Valider le tour"
         self.validate_turn_button.config(state=tk.DISABLED)
 
         # Afficher un message
-        tk.messagebox.showinfo(
-            "Tour validé",
-            f"Tour validé. Au joueur {self.game_logic.current_player + 1} !"
-        )
-
-        # Mettre à jour l'affichage de l'historique
-        self.update_turn_history_display()
+        tk.messagebox.showinfo("Tour validé", f"Tour validé. Au joueur {self.game_logic.current_player + 1} !")
 
     def bust(self):
         """Gère le cas où le joueur est BUSTED."""
         print("[BUST] Aucune combinaison valide. Tour terminé.")
 
-        # Mettre à jour la logique du jeu
-        self.game_logic.bust()
+        # Réinitialiser le score temporaire
+        self.game_logic.round_score = 0  # <-- Réinitialiser le score temporaire
+        self.update_round_score_display()  # <-- Met à jour l'affichage
 
-        # Réinitialiser l'interface
-        self.clear_game_input()
+        # Réinitialiser les dés conservés
+        self.game_logic.kept_dice = []
+        self.game_logic.remaining_dice = 6
+
+        # Supprimer les options de scoring
+        if hasattr(self, 'scoring_options_frame'):
+            self.scoring_options_frame.destroy()
 
         # Désactiver les boutons de jeu
         self.roll_button.config(state=tk.DISABLED)
         self.validate_turn_button.config(state=tk.DISABLED)
 
+        # Passer au joueur suivant
+        self.game_logic.current_player = (self.game_logic.current_player + 1) % self.game_logic.num_players
+
         # Afficher un message
-        self.message_result.config(
-            text=f"BUST ! Aucun point pour ce tour.",
-            fg="red"
-        )
+        self.message_result.config(text=f"BUST ! Aucun point pour ce tour.", fg="red")
 
         # Ajouter un bouton "OK" pour passer au joueur suivant
         if hasattr(self, 'bust_ok_button'):
@@ -336,9 +446,13 @@ class DiceGameUI:
         self.num_dice_entry.insert(0, "6")
         self.message_result.config(text="")
 
+        # Réinitialiser les sélections
+        self.selected_combinations = []
+        self.disabled_options = set()
+
         # Nettoyer les images des dés
         for label in self.dice_labels:
-            label.config(image="")
+            label.config(image="", bg="SystemButtonFace", bd=0)
 
         # Nettoyer les options de scoring
         if hasattr(self, 'scoring_options_frame'):
