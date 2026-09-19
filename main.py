@@ -1,8 +1,8 @@
 # Main Program for Dice 10K
 import tkinter as tk
-from dice_game_10k import DiceGame10K
+from ui.game_ui import DiceGameUI
 
 if __name__ == "__main__":
     root = tk.Tk()
-    game = DiceGame10K(root)
+    game_ui = DiceGameUI(root)
     root.mainloop()
