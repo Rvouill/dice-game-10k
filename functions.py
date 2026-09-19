@@ -1,63 +1,108 @@
-# Libraries
 import random
 from collections import Counter
+from typing import List, Dict, Any
 
-# Function    : Throw
-# Description : Simulate a throw of dices
-# Parameter   : Int "number_of_dices"
-# Return      : Array "throw_set"
-def throw(number_of_dices):
-    # Generate a single array of random integers between 1 and 6
-    throw_set = [random.randint(1, 6) for _ in range(number_of_dices)]
-    print(f"Throw Set : {throw_set}")
-    return throw_set
+# Constantes pour les scores (adaptées à tes règles)
+SCORING_RULES = {
+    "royal_suite": {"dice": {1, 2, 3, 4, 5, 6}, "score": 2000, "name": "Royal Suite"},
+    "triple_1": {"min_count": 3, "score": 1000, "name": "Triple de 1"},
+    "single_1": {"min_count": 1, "score_per_die": 100, "name": "1"},
+    "single_5": {"min_count": 1, "score_per_die": 50, "name": "5"},
+    "three_doubles": {"min_count": 3, "score": 500, "name": "3 Doubles"},
+    "triple_other": {"min_count": 3, "score_per_die": 100, "name": "Triple de {die}"},
+}
 
-# Function    : Get Results
-# Description : Apply 10k rules to throw set & display possible results 
-# Parameter   : Array of dice results
-# Reurn       : String "messages"
-def get_results(throw_set):
-    
-    messages = []  # List to store messages
-    
-    # Royal Suite: 2000 pts
+def throw(number_of_dices: int) -> List[int]:
+    """Simule un lancer de dés."""
+    return [random.randint(1, 6) for _ in range(number_of_dices)]
+
+def get_scoring_options(throw_set: List[int]) -> List[Dict[str, Any]]:
+    """
+    Retourne toutes les options de scoring pour un lancer de dés.
+    Si aucune combinaison valide n'est trouvée, retourne une liste vide.
+    """
+    options = []
+    counts = Counter(throw_set)
+
+    # 1. Royal Suite (1-2-3-4-5-6)
     if len(throw_set) == 6 and set(throw_set) == {1, 2, 3, 4, 5, 6}:
-        messages.append("Royal Suite: 2000 pts")
-    
-    # Triples of 1 : 1000 pts (each)
-    # + remaings of 1 : 100 pts (each)
-    count_of_1 = throw_set.count(1)
-    triples_of_1 = count_of_1 // 3  # Number of triples of 1
-    remaining_1s = count_of_1 % 3   # Leftover of 1
+        options.append({
+            "name": SCORING_RULES["royal_suite"]["name"],
+            "score": SCORING_RULES["royal_suite"]["score"],
+            "dice": throw_set.copy(),
+            "remaining_dice": [],
+        })
+
+    # 2. Triples de 1
+    count_of_1 = counts.get(1, 0)
+    triples_of_1 = count_of_1 // 3
+    remaining_1s = count_of_1 % 3
 
     if triples_of_1 > 0:
-        messages.append(f"Triple 1s: {triples_of_1 * 1000} pts")
+        options.append({
+            "name": SCORING_RULES["triple_1"]["name"],
+            "score": SCORING_RULES["triple_1"]["score"] * triples_of_1,
+            "dice": [1] * (triples_of_1 * 3),
+            "remaining_dice": [d for d in throw_set if d != 1 or (d == 1 and remaining_1s > 0 and [1] * remaining_1s not in [dice for opt in options for dice in [opt["dice"]]])],
+        })
     if remaining_1s > 0:
-        messages.append(f" Ones: {remaining_1s * 100} pts")
-    
-    # 3 Doubles: 500 pts
-    doubles = [num for num in set(throw_set) if throw_set.count(num) == 2]
-    if len(doubles) == 3:
-        messages.append("3 Doubles: 500 pts")
-    
-    # 3 Times Same Number : Dice Value x 100 pts
-    counts = Counter(throw_set)
-    triples = [num for num, count in counts.items() if count > 2 and num != 1]
-    if len(triples) == 1:
-        # Calculate the score based on the triple values
-        value = sum(triple * 100 for triple in triples)
-        messages.append(f"Triple : {value} pts (Values: {triples[0]})")
-    if len(triples) == 2:
-        # Calculate the score based on the triple values
-        value = sum(triple * 100 for triple in triples)
-        messages.append(f"Triple : {value} pts (Values: {triples[0]} and {triples[1]})")
-        
-    # Find Iteration Of "5"
-    if throw_set.count(5) > 0:
-        fives = throw_set.count(5)
-        messages.append(f"Fives : {fives * 50} pts")
-        
-    if messages:
-        return " | ".join(messages)
-    else:
-        return "No special combination"
+        options.append({
+            "name": f"{remaining_1s}x{SCORING_RULES['single_1']['name']}",
+            "score": SCORING_RULES["single_1"]["score_per_die"] * remaining_1s,
+            "dice": [1] * remaining_1s,
+            "remaining_dice": [d for d in throw_set if d != 1],
+        })
+
+    # 3. Trois doubles (ex: 2 paires distinctes)
+    doubles = [num for num, count in counts.items() if count >= 2]
+    if len(doubles) >= 3:
+        selected_doubles = doubles[:3]
+        scoring_dice = []
+        for die in selected_doubles:
+            scoring_dice.extend([die] * 2)
+        options.append({
+            "name": SCORING_RULES["three_doubles"]["name"],
+            "score": SCORING_RULES["three_doubles"]["score"],
+            "dice": scoring_dice,
+            "remaining_dice": [d for d in throw_set if d not in selected_doubles or throw_set.count(d) > 2],
+        })
+
+    # 4. Triples (autres que 1)
+    for die in [2, 3, 4, 5, 6]:
+        if counts.get(die, 0) >= 3:
+            options.append({
+                "name": SCORING_RULES["triple_other"]["name"].format(die=die),
+                "score": SCORING_RULES["triple_other"]["score_per_die"] * die,
+                "dice": [die] * 3,
+                "remaining_dice": [d for d in throw_set if d != die] + [die] * (counts[die] - 3),
+            })
+
+    # 5. Dés simples (1 et 5)
+    for die in [1, 5]:
+        if die in counts:
+            count = counts[die]
+            if die == 1 and count < 3:
+                options.append({
+                    "name": f"{count}x{SCORING_RULES['single_1']['name']}",
+                    "score": SCORING_RULES["single_1"]["score_per_die"] * count,
+                    "dice": [die] * count,
+                    "remaining_dice": [d for d in throw_set if d != die],
+                })
+            elif die == 5:
+                options.append({
+                    "name": f"{count}x{SCORING_RULES['single_5']['name']}",
+                    "score": SCORING_RULES["single_5"]["score_per_die"] * count,
+                    "dice": [die] * count,
+                    "remaining_dice": [d for d in throw_set if d != die],
+                })
+
+    # Supprimer les doublons
+    unique_options = []
+    seen = set()
+    for option in options:
+        key = tuple(sorted(option["dice"]))
+        if key not in seen:
+            seen.add(key)
+            unique_options.append(option)
+
+    return unique_options
